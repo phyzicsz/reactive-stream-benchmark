@@ -15,8 +15,19 @@
  */
 package com.phyzicsz.reactor.benchmark;
 
+import com.phyzicsz.reactor.benchmark.data.DataRecord;
+import com.phyzicsz.reactor.benchmark.data.DataStore;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 
 /**
@@ -24,28 +35,37 @@ import reactor.core.publisher.Flux;
  * @author phyzicsz <phyzics.z@gmail.com>
  */
 public class ReactorBenchmark {
-
-    public void benchmark() {
-        Flux.just(1, 2, 3, 4)
+    
+    Logger logger = LoggerFactory.getLogger(ReactorBenchmark.class);
+    
+    public void benchmark() throws IOException {
+        DataStore data = new DataStore();
+        data.open();
+        
+        List<Integer> iterable = Arrays.asList(1, 2, 3, 4);
+        Flux.fromIterable(data)
                 .log()
-                .subscribe(new Subscriber<Integer>() {
+                .map(new Processor())
+                .subscribe(new Subscriber<DataRecord>() {
                     @Override
                     public void onSubscribe(Subscription s) {
                         s.request(Long.MAX_VALUE);
                     }
-
+                    
                     @Override
-                    public void onNext(Integer integer) {
-                        integer++;
+                    public void onNext(DataRecord integer) {
+                        
                     }
-
+                    
                     @Override
                     public void onError(Throwable t) {
                     }
-
+                    
                     @Override
                     public void onComplete() {
                     }
+
+            
                 });
-    }
+    }   
 }

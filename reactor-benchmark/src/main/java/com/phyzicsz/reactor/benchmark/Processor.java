@@ -15,28 +15,32 @@
  */
 package com.phyzicsz.reactor.benchmark;
 
-import com.phyzicsz.reactor.benchmark.data.DataStore;
+import com.phyzicsz.reactor.benchmark.data.DataRecord;
+import com.phyzicsz.reactor.benchmark.data.KryoManager;
 import java.io.IOException;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author phyzicsz <phyzics.z@gmail.com>
  */
-public class AppFactory {
+public class Processor implements Function<Entry<byte[],byte[]>,DataRecord>{
+
+    org.slf4j.Logger logger = LoggerFactory.getLogger(Processor.class);
     
-    public AppFactory(){
-        
+    @Override
+    public DataRecord apply(Entry<byte[],byte[]> entry) {
+        byte[] msg = entry.getValue();
+        DataRecord record = null;
+        try {
+            record =  KryoManager.deserialize(msg);
+            logger.info("record: {}", record.getRecord());
+        } catch (IOException ex) {
+           logger.error("error processing record",ex);
+        }
+       return record;
     }
     
-    public AppFactory stageData() throws IOException{
-        new DataStore()
-                .load(100);
-        return this;
-    }
-    
-    public AppFactory runBenchmark(){
-        new ReactorBenchmark()
-                .benchmark();
-        return this;
-    }
 }

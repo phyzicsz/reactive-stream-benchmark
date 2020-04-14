@@ -28,7 +28,13 @@ import java.io.IOException;
  */
 public class KryoManager {
 
-    public static byte[] serialize(final Kryo kryo, final DataRecord record) throws IOException {
+    private static final Kryo kryo = new Kryo();
+    
+    static{
+         kryo.register(DataRecord.class);
+    }
+    
+    public static byte[] serialize(final DataRecord record) throws IOException {
         byte[] bytes;
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             Output output = new Output(stream);
@@ -38,7 +44,7 @@ public class KryoManager {
         return bytes;
     }
 
-    public static DataRecord deserialize(final Kryo kryo, final byte[] bytes) throws IOException {
+    public static DataRecord deserialize(final byte[] bytes) throws IOException {
         DataRecord record;
         try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
             Input input = new Input(stream);

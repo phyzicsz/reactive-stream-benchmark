@@ -15,12 +15,14 @@
  */
 package com.phyzicsz.reactor.benchmark.data;
 
-import com.esotericsoftware.kryo.Kryo;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import org.iq80.leveldb.DB;
+import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 import org.slf4j.Logger;
@@ -30,21 +32,22 @@ import org.slf4j.LoggerFactory;
  *
  * @author phyzicsz <phyzics.z@gmail.com>
  */
-public class DataStore {
+public class DataStore implements Iterable<Entry<byte[], byte[]>> {
 
-     Logger logger = LoggerFactory.getLogger(DataStore.class);
+    private static Logger logger = LoggerFactory.getLogger(DataStore.class);
+    private DB db;
+    DBIterator iter;
 
-    private final Kryo kryo = new Kryo();
     private final String DB_KEY = "DB_Key";
 
     public DataStore() {
-        kryo.register(DataRecord.class);
+
     }
 
     public void load(int testSize) throws IOException {
 
         Instant start = Instant.now();
-        
+
         DB db;
         Options options = new Options();
         db = factory.open(new File("levelDBStore"), options);
@@ -55,15 +58,38 @@ public class DataStore {
             record.setRecord(1);
             record.setMessage("ping");
 
-            byte[] bytes = KryoManager.serialize(kryo, record);
+            byte[] bytes = KryoManager.serialize(record);
             db.put(DB_KEY.getBytes(), bytes);
         }
-        
+
         db.close();
-        
+
         Instant finish = Instant.now();
         long elapsedTime = Duration.between(start, finish).toMillis();
         logger.info("finished loading data store: {} ms", elapsedTime);
+    }
+
+    public DataStore open() throws IOException {
+        db = factory.open(new File("levelDBStore"), new Options());
+        iter = db.iterator();
+        return this;
+    }
+
+    @Override
+    public Iterator<Entry<byte[], byte[]>> iterator() {
+        return new LevelDbIteratorService<>();
+    }
+
+    private class LevelDbIteratorService<T> implements Iterator<T> {
+        @Override
+        public boolean hasNext() {
+            return iter.hasNext();
+        }
+
+        @Override
+        public T next() {
+            return (T) iter.next();
+        }
 
     }
 }
