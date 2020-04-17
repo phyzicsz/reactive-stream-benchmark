@@ -30,11 +30,11 @@ public class AppFactory {
     
     public AppFactory stageData() throws IOException{
         new DataStore()
-                .load(100);
+                .load(1000000);
         return this;
     }
     
-    public AppFactory runBenchmark(){
+    public AppFactory runBenchmark() throws IOException{
         new ReactorBenchmark()
                 .benchmark();
         return this;

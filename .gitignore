@@ -1,5 +1,6 @@
 /target
 */levelDBStore
+*.txt
 
 # Compiled class file
 *.class

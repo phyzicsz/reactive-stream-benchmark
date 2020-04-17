@@ -17,6 +17,7 @@ package com.phyzicsz.reactor.benchmark;
 
 import com.phyzicsz.reactor.benchmark.data.DataRecord;
 import com.phyzicsz.reactor.benchmark.data.KryoManager;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -29,6 +30,11 @@ import org.slf4j.LoggerFactory;
 public class Processor implements Function<Entry<byte[],byte[]>,DataRecord>{
 
     org.slf4j.Logger logger = LoggerFactory.getLogger(Processor.class);
+    private final BufferedWriter writer;
+    
+    public Processor(final BufferedWriter writer){
+        this.writer = writer;
+    }
     
     @Override
     public DataRecord apply(Entry<byte[],byte[]> entry) {
@@ -36,7 +42,8 @@ public class Processor implements Function<Entry<byte[],byte[]>,DataRecord>{
         DataRecord record = null;
         try {
             record =  KryoManager.deserialize(msg);
-            logger.info("record: {}", record.getRecord());
+            writer.write((Long.toString(System.nanoTime())));
+            writer.newLine();
         } catch (IOException ex) {
            logger.error("error processing record",ex);
         }

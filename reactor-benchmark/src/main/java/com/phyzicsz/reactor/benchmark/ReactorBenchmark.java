@@ -17,13 +17,15 @@ package com.phyzicsz.reactor.benchmark;
 
 import com.phyzicsz.reactor.benchmark.data.DataRecord;
 import com.phyzicsz.reactor.benchmark.data.DataStore;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
@@ -35,37 +37,34 @@ import reactor.core.publisher.Flux;
  * @author phyzicsz <phyzics.z@gmail.com>
  */
 public class ReactorBenchmark {
-    
+
     Logger logger = LoggerFactory.getLogger(ReactorBenchmark.class);
-    
+
     public void benchmark() throws IOException {
         DataStore data = new DataStore();
         data.open();
-        
-        List<Integer> iterable = Arrays.asList(1, 2, 3, 4);
-        Flux.fromIterable(data)
-                .log()
-                .map(new Processor())
-                .subscribe(new Subscriber<DataRecord>() {
-                    @Override
-                    public void onSubscribe(Subscription s) {
-                        s.request(Long.MAX_VALUE);
-                    }
-                    
-                    @Override
-                    public void onNext(DataRecord integer) {
-                        
-                    }
-                    
-                    @Override
-                    public void onError(Throwable t) {
-                    }
-                    
-                    @Override
-                    public void onComplete() {
-                    }
 
-            
-                });
-    }   
+        int count = 0;
+
+        File file = new File("reactor-benchmark.txt");
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        
+        
+        logger.info("starting benchmark");
+        
+        Instant start = Instant.now();
+        FileWriter fw = new FileWriter(file);
+        try (BufferedWriter writer = new BufferedWriter(fw)) {
+            Flux.fromIterable(data)
+//                    .log()
+                    .map(new Processor(writer))
+                    .subscribe();
+        }
+        
+        Instant finish = Instant.now();
+        long elapsedTime = Duration.between(start, finish).toMillis();
+        logger.info("finished running benchmark: {} ms", elapsedTime);
+    }
 }

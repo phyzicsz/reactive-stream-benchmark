@@ -17,6 +17,7 @@ package com.phyzicsz.reactor.benchmark.data;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
@@ -52,44 +53,32 @@ public class DataStore implements Iterable<Entry<byte[], byte[]>> {
         Options options = new Options();
         db = factory.open(new File("levelDBStore"), options);
 
-        for (int i = 0; i < testSize; i++) {
+        for (Integer i = 0; i < testSize; i++) {
             DataRecord record = new DataRecord();
             record.setCreationTime(Instant.now().toEpochMilli());
             record.setRecord(1);
             record.setMessage("ping");
 
             byte[] bytes = KryoManager.serialize(record);
-            db.put(DB_KEY.getBytes(), bytes);
+            db.put(ByteBuffer.allocate(4).putInt(i).array(), bytes);
         }
 
         db.close();
 
         Instant finish = Instant.now();
         long elapsedTime = Duration.between(start, finish).toMillis();
-        logger.info("finished loading data store: {} ms", elapsedTime);
+        logger.info("finished loading data store: {}records, {} ms", testSize, elapsedTime);
     }
 
     public DataStore open() throws IOException {
         db = factory.open(new File("levelDBStore"), new Options());
         iter = db.iterator();
+        
         return this;
     }
 
     @Override
     public Iterator<Entry<byte[], byte[]>> iterator() {
-        return new LevelDbIteratorService<>();
-    }
-
-    private class LevelDbIteratorService<T> implements Iterator<T> {
-        @Override
-        public boolean hasNext() {
-            return iter.hasNext();
-        }
-
-        @Override
-        public T next() {
-            return (T) iter.next();
-        }
-
+        return db.iterator();
     }
 }
