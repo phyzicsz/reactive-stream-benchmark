@@ -36,6 +36,9 @@ public class AppFactory {
     
     public AppFactory runBenchmark() throws IOException{
         new ReactorBenchmark()
+                .hotspotWarmup()
+                .hotspotWarmup()
+                .hotspotWarmup()
                 .benchmark();
         return this;
     }

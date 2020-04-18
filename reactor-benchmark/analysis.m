@@ -1,16 +1,25 @@
 graphics_toolkit('fltk')
-data = importdata('reactor-benchmark.txt');
+
+#open the file
+fileName = 'reactor-benchmark.txt'
+data = importdata(fileName);
+
+#convert to microseconds
 diffs = diff(data)/1000;
 
-x = 1:999999;
+# there are some wierd data points that make it hard to see down at the mean
+# lets filter those out...
+anomolies = find(diffs > 200)
+diffs(anomolies) = [];
 
-#there are some wierd values...
-#filter them out...  (not that many (<20))
-excludes = find(diffs > 200);
-diffs(excludes) = [];
+#plot the diffs
+figure
+plot(diffs)
 
-avg = mean(diffs);
+#plot the histogram
+figure
+hist(diffs,0:.03:2);
 
-hold on 
-stem(diffs);
-plot(mean(diffs));
+
+
+

@@ -15,7 +15,6 @@
  */
 package com.phyzicsz.reactor.benchmark;
 
-import com.phyzicsz.reactor.benchmark.data.DataRecord;
 import com.phyzicsz.reactor.benchmark.data.DataStore;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,11 +22,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map.Entry;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
@@ -40,7 +34,27 @@ public class ReactorBenchmark {
 
     Logger logger = LoggerFactory.getLogger(ReactorBenchmark.class);
 
-    public void benchmark() throws IOException {
+    public ReactorBenchmark hotspotWarmup() throws IOException {
+        DataStore data = new DataStore();
+        data.open();
+
+        logger.info("running hotspot warmup benchmark");
+
+        Instant start = Instant.now();
+
+        Flux.fromIterable(data)
+//                .log()
+                .map(new Processor(null, false))
+                .subscribe();
+
+        Instant finish = Instant.now();
+        long elapsedTime = Duration.between(start, finish).toMillis();
+        logger.info("finished running benchmark: {} ms", elapsedTime);
+        data.close();
+        return this;
+    }
+
+    public ReactorBenchmark benchmark() throws IOException {
         DataStore data = new DataStore();
         data.open();
 
@@ -50,21 +64,22 @@ public class ReactorBenchmark {
         if (!file.exists()) {
             file.createNewFile();
         }
-        
-        
+
         logger.info("starting benchmark");
-        
+
         Instant start = Instant.now();
         FileWriter fw = new FileWriter(file);
         try (BufferedWriter writer = new BufferedWriter(fw)) {
             Flux.fromIterable(data)
-//                    .log()
-                    .map(new Processor(writer))
+                    //                    .log()
+                    .map(new Processor(writer, true))
                     .subscribe();
         }
-        
+
         Instant finish = Instant.now();
         long elapsedTime = Duration.between(start, finish).toMillis();
         logger.info("finished running benchmark: {} ms", elapsedTime);
+        data.close();
+        return this;
     }
 }

@@ -19,6 +19,7 @@ import com.phyzicsz.reactor.benchmark.data.DataRecord;
 import com.phyzicsz.reactor.benchmark.data.KryoManager;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import org.slf4j.LoggerFactory;
@@ -27,27 +28,33 @@ import org.slf4j.LoggerFactory;
  *
  * @author phyzicsz <phyzics.z@gmail.com>
  */
-public class Processor implements Function<Entry<byte[],byte[]>,DataRecord>{
+public class Processor implements Function<Entry<byte[], byte[]>, DataRecord> {
 
     org.slf4j.Logger logger = LoggerFactory.getLogger(Processor.class);
     private final BufferedWriter writer;
-    
-    public Processor(final BufferedWriter writer){
+    private final Boolean output;
+
+    public Processor(final BufferedWriter writer, final Boolean output) {
         this.writer = writer;
+        this.output = output;
     }
-    
+
     @Override
-    public DataRecord apply(Entry<byte[],byte[]> entry) {
+    public DataRecord apply(Entry<byte[], byte[]> entry) {
         byte[] msg = entry.getValue();
         DataRecord record = null;
         try {
-            record =  KryoManager.deserialize(msg);
-            writer.write((Long.toString(System.nanoTime())));
-            writer.newLine();
+            record = KryoManager.deserialize(msg);
+
+            if (output) {
+                writer.write(Long.toString(System.nanoTime()));
+                writer.newLine();
+            }
+
         } catch (IOException ex) {
-           logger.error("error processing record",ex);
+            logger.error("error processing record", ex);
         }
-       return record;
+        return record;
     }
-    
+
 }

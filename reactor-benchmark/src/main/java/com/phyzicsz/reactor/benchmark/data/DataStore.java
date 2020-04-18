@@ -76,6 +76,15 @@ public class DataStore implements Iterable<Entry<byte[], byte[]>> {
         
         return this;
     }
+    
+    public void close() throws IOException{
+        if(iter != null){
+            iter.close();
+        }
+        if(db!=null){
+            db.close();
+        }
+    }
 
     @Override
     public Iterator<Entry<byte[], byte[]>> iterator() {
