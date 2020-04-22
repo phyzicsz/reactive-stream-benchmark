@@ -49,9 +49,9 @@ public class DataStore implements Iterable<Entry<byte[], byte[]>> {
 
         Instant start = Instant.now();
 
-        DB db;
+        DB dblocal;
         Options options = new Options();
-        db = factory.open(new File("levelDBStore"), options);
+        dblocal = factory.open(new File("levelDBStore"), options);
 
         for (Integer i = 0; i < testSize; i++) {
             DataRecord record = new DataRecord();
@@ -60,10 +60,10 @@ public class DataStore implements Iterable<Entry<byte[], byte[]>> {
             record.setMessage("ping");
 
             byte[] bytes = KryoManager.serialize(record);
-            db.put(ByteBuffer.allocate(4).putInt(i).array(), bytes);
+            dblocal.put(ByteBuffer.allocate(4).putInt(i).array(), bytes);
         }
 
-        db.close();
+        dblocal.close();
 
         Instant finish = Instant.now();
         long elapsedTime = Duration.between(start, finish).toMillis();

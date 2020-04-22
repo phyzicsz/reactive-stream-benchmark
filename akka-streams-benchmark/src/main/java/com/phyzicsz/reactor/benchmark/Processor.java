@@ -21,7 +21,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.function.Function;
-//import java.util.function.Function;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -44,9 +43,10 @@ public class Processor implements Function<Entry<byte[], byte[]>, DataRecord> {
         byte[] msg = entry.getValue();
         DataRecord record = null;
         try {
+//            logger.info("processing record");
             record = KryoManager.deserialize(msg);
 
-            if (output) {
+            if (output) { 
                 writer.write(Long.toString(System.nanoTime()));
                 writer.newLine();
             }
